@@ -37,12 +37,14 @@ class Transport(object):
             'User-Agent': 'Zeep/%s (www.python-zeep.org)' % (get_version())
         }
         self.session = self.create_session()
+        self.proxies = {}
 
     def create_session(self):
         session = requests.Session()
         session.verify = self.http_verify
         session.auth = self.http_auth
         session.headers = self.http_headers
+        session.proxies = self.proxies
         return session
 
     def get(self, address, params, headers):
@@ -60,7 +62,7 @@ class Transport(object):
             timeout=self.operation_timeout)
         return response
 
-    def post(self, address, message, headers):
+    def post(self, address, message, headers, proxies):
         """Proxy to requests.posts()
 
         :param address: The URL for the request
@@ -78,6 +80,7 @@ class Transport(object):
             address,
             data=message,
             headers=headers,
+            proxies=proxies,
             timeout=self.operation_timeout)
 
         if self.logger.isEnabledFor(logging.DEBUG):
@@ -91,7 +94,7 @@ class Transport(object):
 
         return response
 
-    def post_xml(self, address, envelope, headers):
+    def post_xml(self, address, envelope, headers, proxies):
         """Post the envelope xml element to the given address with the headers.
 
         This method is intended to be overriden if you want to customize the
@@ -100,7 +103,7 @@ class Transport(object):
 
         """
         message = etree_to_string(envelope)
-        return self.post(address, message, headers)
+        return self.post(address, message, headers, proxies)
 
     def load(self, url):
         """Load the content from the given URL"""
